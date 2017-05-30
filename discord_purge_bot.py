@@ -1,7 +1,10 @@
 import discord
 import asyncio
 import logging
+import random
 from discord.ext.commands import Bot
+
+
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -18,12 +21,12 @@ async def on_ready():
 	print(Client.user.id)
 	print('-----------------------')
 
-@Client.event
+@Client.event	
 async def on_message(message):
-	if message.content.startswith('!hello'):
-		await Client.send_message(message.channel, 'Hello!!!')		
-		
-	await Client.process_commands(message)		
+	if message.content.startswith("!hello"):
+		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))
+
+	await Client.process_commands(message)
 
 @Client.command(pass_context=True)	
 async def clear(ctx, number: int):
@@ -32,6 +35,7 @@ async def clear(ctx, number: int):
 	async for x in Client.logs_from(ctx.message.channel, limit=number):
 		mgs.append(x)
 	await Client.delete_messages(mgs)	
+		
 
 @Client.command(pass_context=True)
 async def purge(ctx, number: int):
@@ -39,5 +43,22 @@ async def purge(ctx, number: int):
 	async for x in Client.logs_from(ctx.message.channel, limit=number):
 		if x:
  			await Client.delete_message(x)
+
+@Client.command() 
+async def rolldice(number : int):	
+	result = str(random.randint(1, number))
+	await Client.say("Random number: " + result)
+
+@Client.command()
+async def roll(number=2):
+	result = str(random.randint(1, number))
+	await Client.say("Random number: " + result)
+
+
+
+""""@Client.event
+async def on_error(event):
+	r = '!clear + #mgs\n!purge + #mgs'
+	await Client.send_message(message.channel,'Command not found.\nCommands: {}'.format(r))"""
  		
 Client.run('MzE2MDM5NDI1OTQ1NjMyNzY4.DAPeXA.Z-m2BZ_bbhF5Ezc0Nu5S_mcBYHk')
