@@ -26,6 +26,14 @@ async def on_message(message):
 	if message.content.startswith("!hello"):
 		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))
 
+	if message.content.startswith(";;play"):
+		await asyncio.sleep(2)
+		await Client.delete_message(message)
+
+	if message.content.startswith(";;stop"):
+		await asyncio.sleep(2)
+		await Client.delete_message(message)	
+
 	await Client.process_commands(message)
 
 @Client.command(pass_context=True)	
@@ -61,4 +69,4 @@ async def on_error(event):
 	r = '!clear + #mgs\n!purge + #mgs'
 	await Client.send_message(message.channel,'Command not found.\nCommands: {}'.format(r))"""
  		
-Client.run('MzE2MDM5NDI1OTQ1NjMyNzY4.DAPeXA.Z-m2BZ_bbhF5Ezc0Nu5S_mcBYHk')
+Client.run('MzE5Mjc3OTczNTQwNzAwMTcx.DA-niw.pWRWqQalc_oaq5AqkmbfJRLqNuo')
