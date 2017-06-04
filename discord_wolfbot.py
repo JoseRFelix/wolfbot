@@ -34,6 +34,10 @@ async def on_message(message):
 		await asyncio.sleep(2)
 		await Client.delete_message(message)	
 
+	if message.content.startswith(";;skip"):
+		await asyncio.sleep(2)
+		await Client.delete_message(message)
+
 	await Client.process_commands(message)
 
 @Client.command(pass_context=True)	
