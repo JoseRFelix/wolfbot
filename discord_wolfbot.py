@@ -4,14 +4,6 @@ import logging
 import random
 from discord.ext.commands import Bot
 
-
-
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-
 Client = Bot(command_prefix='!')
 
 @Client.event
@@ -21,22 +13,20 @@ async def on_ready():
 	print(Client.user.id)
 	print('-----------------------')
 
+#Add message to delete on prompt
+to_delete_messages = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"]
+
 @Client.event	
 async def on_message(message):
-	if message.content.startswith("!hello"):
+	if message.content.startswith("$hello"):
 		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))
 
-	if message.content.startswith(";;play"):
-		await asyncio.sleep(2)
+	if message.content.partition(' ')[0].lower() in to_delete_messages:
+		await asyncio.sleep(1)
 		await Client.delete_message(message)
 
-	if message.content.startswith(";;stop"):
-		await asyncio.sleep(2)
-		await Client.delete_message(message)	
-
-	if message.content.startswith(";;skip"):
-		await asyncio.sleep(2)
-		await Client.delete_message(message)
+	if message.content.startswith("$list"):
+		await Client.send_message(message.channel, "Words to delete on prompt: {}".format(to_delete_messages))
 
 	await Client.process_commands(message)
 
@@ -66,11 +56,39 @@ async def roll(number=2):
 	result = str(random.randint(1, number))
 	await Client.say("Random number: " + result)
 
+@Client.command(pass_context=True)
+async def add_list(ctx, word : str):
 
+	member = ctx.message.author	
+	channel = ctx.message.channel
+
+	if member.permissions_in(channel).administrator:
+		if word.lower() not in to_delete_messages:
+			to_delete_messages.append(word.lower())
+			tmp = await Client.say("{} has been added to the list".format(word))
+		else: 
+			await Client.say("{} is already in list".format(word))	
+
+@Client.command (pass_context=True)
+async def del_list(ctx, word : str):
+
+	member = ctx.message.author
+	channel = ctx.message.channel
+
+	if member.permissions_in(channel).administrator:
+
+		if word.lower() in to_delete_messages:
+			to_delete_messages.remove(word)
+			tmp = await Client.say("{} has been deleted from the list.".format(word))
+
+		else:
+			await Client.say("Word not in list.")
 
 """"@Client.event
 async def on_error(event):
 	r = '!clear + #mgs\n!purge + #mgs'
 	await Client.send_message(message.channel,'Command not found.\nCommands: {}'.format(r))"""
+
+	
  		
-Client.run('MzE5Mjc3OTczNTQwNzAwMTcx.DA-niw.pWRWqQalc_oaq5AqkmbfJRLqNuo')
+Client.run("MzE5Mjc3OTczNTQwNzAwMTcx.DA-niw.pWRWqQalc_oaq5AqkmbfJRLqNuo")
