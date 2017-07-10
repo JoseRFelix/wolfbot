@@ -91,8 +91,7 @@ async def del_list(ctx, word : str):
 			await Client.say("Word not in list.")
 
 @Client.command(pass_context=True)
-async def search(ctx, engine : str, message):
-	result = {} #Google results 	 
+async def search(ctx, engine : str, message):		 
 	link_list = [] #Youtube url results		
 
 	if engine == 'google':
