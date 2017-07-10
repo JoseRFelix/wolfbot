@@ -1,10 +1,19 @@
 import discord
 import asyncio
-import logging
 import random
+from urllib.request import urlopen, quote 
 from discord.ext.commands import Bot
+from bs4 import BeautifulSoup
+from google import google
 
 Client = Bot(command_prefix='!')
+
+"""Functions to ease processes"""
+def bs(url):
+	response = urlopen(url)
+	html = response.read()
+	soup = BeautifulSoup(html, "lxml")
+	return soup
 
 @Client.event
 async def on_ready():
@@ -12,21 +21,25 @@ async def on_ready():
 	print(Client.user.name)
 	print(Client.user.id)
 	print('-----------------------')
+	await Client.change_presence(game = discord.Game(name="Type !help"))
 
 #Add message to delete on prompt
-to_delete_messages = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"]
+
+to_delete_messages = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"] 
 
 @Client.event	
 async def on_message(message):
 	if message.content.startswith("$hello"):
-		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))
-
-	if message.content.partition(' ')[0].lower() in to_delete_messages:
-		await asyncio.sleep(1)
-		await Client.delete_message(message)
+		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))			
 
 	if message.content.startswith("$list"):
 		await Client.send_message(message.channel, "Words to delete on prompt: {}".format(to_delete_messages))
+
+	r = [m for m in message.content.partition(' ') if m.lower() in to_delete_messages]
+
+	if r:				
+		await asyncio.sleep(1)
+		await Client.delete_message(message)	
 
 	await Client.process_commands(message)
 
@@ -38,7 +51,6 @@ async def clear(ctx, number: int):
 		mgs.append(x)
 	await Client.delete_messages(mgs)	
 		
-
 @Client.command(pass_context=True)
 async def purge(ctx, number: int):
 	tmp= await Client.say("Starting purge...")
@@ -46,15 +58,9 @@ async def purge(ctx, number: int):
 		if x:
  			await Client.delete_message(x)
 
-@Client.command() 
-async def rolldice(number : int):	
-	result = str(random.randint(1, number))
-	await Client.say("Random number: " + result)
-
 @Client.command()
-async def roll(number=2):
-	result = str(random.randint(1, number))
-	await Client.say("Random number: " + result)
+async def flipcoin(number : int):	
+	await Client.say(random.choice(["Heads!", "Tails!"]))
 
 @Client.command(pass_context=True)
 async def add_list(ctx, word : str):
@@ -84,11 +90,43 @@ async def del_list(ctx, word : str):
 		else:
 			await Client.say("Word not in list.")
 
+@Client.command(pass_context=True)
+async def search(ctx, engine : str, message):
+	result = {} #Google results 	 
+	link_list = [] #Youtube url results		
+
+	if engine == 'google':
+		text_to_search = ctx.message.content.replace('!search' , '').replace('google', '')
+		query = quote(text_to_search)
+
+		print ('Searching %s for:%s' % (engine, text_to_search))
+
+		for idx, result in enumerate(google.search(text_to_search, 1), start=1):
+			if idx == 6:
+				break
+
+			mes = "```{}.{} :\n {} \n``` {} \n ".format(idx, result.name, result.description, result.link) + "=" * 93
+			await Client.send_message(ctx.message.channel, mes)			
+	
+	elif engine == 'youtube':
+		text_to_search = ctx.message.content.replace('!search' , '').replace('youtube', '') 
+		query = quote(text_to_search)
+		
+		print ('Searching %s for:%s' % (engine, text_to_search))
+
+		url = "https://www.youtube.com/results?search_query=" + query
+
+		soup = bs(url)		
+
+		for vid in soup.find_all(class_='yt-uix-tile-link')[0:5]:			
+			link_list.append('https://www.youtube.com' + vid['href'])
+
+		for i in range(5):			
+			await Client.send_message(ctx.message.channel, link_list[i])
+
 """"@Client.event
 async def on_error(event):
 	r = '!clear + #mgs\n!purge + #mgs'
 	await Client.send_message(message.channel,'Command not found.\nCommands: {}'.format(r))"""
-
-	
  		
 Client.run("MzE5Mjc3OTczNTQwNzAwMTcx.DA-niw.pWRWqQalc_oaq5AqkmbfJRLqNuo")
