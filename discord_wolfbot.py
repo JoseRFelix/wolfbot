@@ -24,27 +24,26 @@ async def on_ready():
 	await Client.change_presence(game = discord.Game(name="Type !help"))
 
 #Add message to delete on prompt
-del_list = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"] 
+to_delete_messages = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"] 
 prohibited_searches = [] #used to control searches 
 
 @Client.event	
 async def on_message(message):
-
-	r = [m for m in message.content.partition(' ') if m.lower() in del_list]
-
 	if message.content.startswith("$hello"):
 		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))			
 
 	if message.content.startswith("$list"):
-		await Client.send_message(message.channel, "Words to delete on prompt: {}".format(del_list))
+		await Client.send_message(message.channel, "Words to delete on prompt: {}".format(to_delete_messages))
+
+	r = [m for m in message.content.partition(' ') if m.lower() in to_delete_messages]
+	
+	if r:				
+		await asyncio.sleep(1)
+		await Client.delete_message(message)
 
 	if message.content.startswith("$search_list"):
 		await Client.send_message(messaege.channel, "Words to delete on prompt: {}".format(prohibited_searches))
-
-	if r:				
-		await asyncio.sleep(1)
-		await Client.delete_message(message)	
-
+		
 	await Client.process_commands(message)
 
 @Client.command(pass_context=True)	
@@ -73,9 +72,9 @@ async def add_list(ctx, list: str, word : str):
 	channel = ctx.message.channel
 
 	if member.permissions_in(channel).administrator:
-		if list == del_list:
-			if word.lower() not in del_list:
-				del_list.append(word.lower())
+		if list == to_delete_messages:
+			if word.lower() not in to_delete_messages:
+				to_delete_messages.append(word.lower())
 				tmp = await Client.say("{} has been added to the list".format(word))
 			else: 
 				await Client.say("{} is already in list".format(word))	
@@ -94,9 +93,9 @@ async def del_list(ctx, list : str, word : str):
 	channel = ctx.message.channel
 
 	if member.permissions_in(channel).administrator:
-		if list == del_list:
-			if word.lower() in del_list:
-				del_list.remove(word)
+		if list == to_delete_messages:
+			if word.lower() in to_delete_messages:
+				to_delete_messages.remove(word)
 				tmp = await Client.say("{} has been deleted from the list.".format(word))
 
 			else:
