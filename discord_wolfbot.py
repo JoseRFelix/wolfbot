@@ -24,18 +24,22 @@ async def on_ready():
 	await Client.change_presence(game = discord.Game(name="Type !help"))
 
 #Add message to delete on prompt
-
-to_delete_messages = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"] 
+del_list = [";;play", ";;stop", ";;skip", ";;restart", ";;replay"] 
+prohibited_searches = [] #used to control searches 
 
 @Client.event	
 async def on_message(message):
+
+	r = [m for m in message.content.partition(' ') if m.lower() in del_list]
+
 	if message.content.startswith("$hello"):
 		await Client.send_message(message.channel, 'Hi, {}!'.format(message.author))			
 
 	if message.content.startswith("$list"):
-		await Client.send_message(message.channel, "Words to delete on prompt: {}".format(to_delete_messages))
+		await Client.send_message(message.channel, "Words to delete on prompt: {}".format(del_list))
 
-	r = [m for m in message.content.partition(' ') if m.lower() in to_delete_messages]
+	if message.content.startswith("$search_list"):
+		await Client.send_message(messaege.channel, "Words to delete on prompt: {}".format(prohibited_searches))
 
 	if r:				
 		await asyncio.sleep(1)
@@ -63,32 +67,48 @@ async def flipcoin(number : int):
 	await Client.say(random.choice(["Heads!", "Tails!"]))
 
 @Client.command(pass_context=True)
-async def add_list(ctx, word : str):
+async def add_list(ctx, list: str, word : str):
 
 	member = ctx.message.author	
 	channel = ctx.message.channel
 
 	if member.permissions_in(channel).administrator:
-		if word.lower() not in to_delete_messages:
-			to_delete_messages.append(word.lower())
-			tmp = await Client.say("{} has been added to the list".format(word))
-		else: 
-			await Client.say("{} is already in list".format(word))	
+		if list == del_list:
+			if word.lower() not in del_list:
+				del_list.append(word.lower())
+				tmp = await Client.say("{} has been added to the list".format(word))
+			else: 
+				await Client.say("{} is already in list".format(word))	
+
+		if list == 	prohibited_searches:
+			if word.lower() not in prohibited_searches:
+				prohibited_searches.append(word.lower())
+				tmp = await Client.say("{} has been added to the list".format(word))				
+			else: 
+				await Client.say("{} is already in list".format(word))			
 
 @Client.command (pass_context=True)
-async def del_list(ctx, word : str):
+async def del_list(ctx, list : str, word : str):
 
 	member = ctx.message.author
 	channel = ctx.message.channel
 
 	if member.permissions_in(channel).administrator:
+		if list == del_list:
+			if word.lower() in del_list:
+				del_list.remove(word)
+				tmp = await Client.say("{} has been deleted from the list.".format(word))
 
-		if word.lower() in to_delete_messages:
-			to_delete_messages.remove(word)
-			tmp = await Client.say("{} has been deleted from the list.".format(word))
+			else:
+				await Client.say("Word not in list.")
 
-		else:
-			await Client.say("Word not in list.")
+		if list == prohibited_searches:
+			if word.lower() in prohibited_searches:
+				prohibited_searches.remove(word)
+				tmp = await Client.say("{} has been deleted from the list.".format(word))
+
+			else:
+				await Client.say("Word not in list.")				
 
 @Client.command(pass_context=True)
 async def search(ctx, engine : str, message):		 
@@ -96,6 +116,11 @@ async def search(ctx, engine : str, message):
 
 	if engine == 'google':
 		text_to_search = ctx.message.content.replace('!search' , '').replace('google', '')
+		text_to_search = text_to_search.strip()
+
+		if text_to_search in prohibited_searches:
+			return 
+
 		query = quote(text_to_search)
 
 		print ('Searching %s for:%s' % (engine, text_to_search))
@@ -114,7 +139,7 @@ async def search(ctx, engine : str, message):
 		print ('Searching %s for:%s' % (engine, text_to_search))
 
 		url = "https://www.youtube.com/results?search_query=" + query
-
+		
 		soup = bs(url)		
 
 		for vid in soup.find_all(class_='yt-uix-tile-link')[0:5]:			
