@@ -171,4 +171,4 @@ async def changes():
     await Client.say(wolfbot_version + changes)
 
 
-Client.run("MzE5Mjc3OTczNTQwNzAwMTcx.DA-niw.pWRWqQalc_oaq5AqkmbfJRLqNuo")
+Client.run("")
