@@ -1,3 +1,3 @@
 @echo off 
-cd C:\Users\estela.ramirez\desktop\python\wolfbot
+cd PATH_TO_FILE
 python discord_wolfbot.py
